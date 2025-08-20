@@ -33,27 +33,3 @@ This app helps users manage daily expenses, categorize them, and keep track of t
 
 ---
 
-## Project Structure
-
-com.example.expensemanager
-│── data
-│ ├── local # Room database, DAO, entities
-│ ├── mapper # DTO ↔ Domain model mappers
-│ └── repository # Data layer repository implementations
-│
-│── di
-│ └── AppModule.kt # Hilt dependency injection setup
-│
-│── domain
-│ ├── model # Domain models
-│ └── repository # Repository interfaces (abstraction layer)
-│
-│── ui
-│ ├── navigation # Compose Navigation setup
-│ ├── screens # All UI screens (List, Add/Edit, Detail)
-│ └── theme # Compose Material Theme setup
-│
-│── util # Utility/helper classes
-│
-│── ExpenseApp.kt # Application class with Hilt setup
-│── MainActivity.kt # Main entry point of the app
