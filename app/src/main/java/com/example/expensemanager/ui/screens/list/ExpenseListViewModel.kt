@@ -6,11 +6,8 @@ import com.example.expensemanager.domain.model.Expense
 import com.example.expensemanager.domain.repository.ExpenseRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -19,30 +16,42 @@ class ExpenseListViewModel @Inject constructor(
     private val repository: ExpenseRepository
 ) : ViewModel() {
 
-    private val query = MutableStateFlow("")
-    private val category = MutableStateFlow<String?>(null)
+    private val _state = MutableStateFlow(ExpenseListState())
+    val state: StateFlow<ExpenseListState> = _state.asStateFlow()
 
-    private val expenses: StateFlow<List<Expense>> =
-        combine(query, category) { q, c -> q to c }
-            .flatMapLatest { (q, c) -> repository.observeExpenses(q, c) }
-            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    init {
+        loadExpenses()
+    }
 
-    val state: StateFlow<ExpenseListState> =
-        combine(query, category, expenses) { q, c, items ->
-            ExpenseListState(
-                query = q,
-                category = c,
-                items = items,
-                total = items.sumOf { it.amount }
-            )
-        }.stateIn(viewModelScope, SharingStarted.Eagerly, ExpenseListState())
+    fun onQueryChange(newQuery: String) {
+        _state.value = _state.value.copy(query = newQuery)
+        loadExpenses()
+    }
 
-    fun onQueryChange(new: String) { query.value = new }
-    fun onCategoryChange(new: String?) { category.value = new }
+    fun onCategoryChange(newCategory: String?) {
+        _state.value = _state.value.copy(category = newCategory)
+        loadExpenses()
+    }
+
+    private fun loadExpenses() {
+        viewModelScope.launch {
+            val currentState = _state.value
+            repository.observeExpenses(currentState.query, currentState.category)
+                .collect { expenses ->
+                    _state.value = currentState.copy(
+                        items = expenses,
+                        total = expenses.sumOf { it.amount }
+                    )
+                }
+        }
+    }
 
     fun onDelete(expenseId: Long) {
         viewModelScope.launch {
-            repository.getExpense(expenseId)?.let { repository.deleteExpense(it) }
+            repository.getExpense(expenseId)?.let { expense ->
+                repository.deleteExpense(expense)
+                // Expenses will be automatically updated through the Flow
+            }
         }
     }
 }

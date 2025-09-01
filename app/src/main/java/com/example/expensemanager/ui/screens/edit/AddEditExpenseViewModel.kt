@@ -8,10 +8,8 @@ import com.example.expensemanager.domain.repository.ExpenseRepository
 import com.example.expensemanager.ui.navigation.NavRoutes
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.ZoneId
@@ -30,56 +28,108 @@ class AddEditExpenseViewModel @Inject constructor(
 
     init {
         if (expenseId != null) {
-            viewModelScope.launch {
-                repository.getExpense(expenseId)?.let { e ->
-                    _state.update {
-                        it.copy(
-                            id = e.id,
-                            title = e.title,
-                            amount = e.amount.toString(),
-                            category = e.category,
-                            dateMillis = e.dateMillis
-                        )
-                    }
-                }
-            }
+            loadExpenseForEdit()
         } else {
-            _state.update { it.copy(dateMillis = todayMillis()) }
+            // Set today's date for new expense
+            _state.value = _state.value.copy(dateMillis = todayMillis())
         }
     }
 
-    fun onTitleChange(new: String) { _state.update { it.copy(title = new) } }
-    fun onAmountChange(new: String) { _state.update { it.copy(amount = new) } }
-    fun onCategoryChange(new: String) { _state.update { it.copy(category = new) } }
+    private fun loadExpenseForEdit() {
+        viewModelScope.launch {
+            expenseId?.let { id ->
+                repository.getExpense(id)?.let { expense ->
+                    _state.value = _state.value.copy(
+                        id = expense.id,
+                        title = expense.title,
+                        amount = expense.amount.toString(),
+                        category = expense.category,
+                        dateMillis = expense.dateMillis
+                    )
+                }
+            }
+        }
+    }
 
-    fun onDateClick() { _state.update { it.copy(showDatePicker = true) } }
-    fun onDismissDate() { _state.update { it.copy(showDatePicker = false) } }
-    fun onConfirmDate(millis: Long) { _state.update { it.copy(dateMillis = millis, showDatePicker = false) } }
+    fun onTitleChange(newTitle: String) {
+        _state.value = _state.value.copy(title = newTitle)
+    }
+
+    fun onAmountChange(newAmount: String) {
+        _state.value = _state.value.copy(amount = newAmount)
+    }
+
+    fun onCategoryChange(newCategory: String) {
+        _state.value = _state.value.copy(category = newCategory)
+    }
+
+    fun onDateClick() {
+        _state.value = _state.value.copy(showDatePicker = true)
+    }
+
+    fun onDismissDate() {
+        _state.value = _state.value.copy(showDatePicker = false)
+    }
+
+    fun onConfirmDate(millis: Long) {
+        _state.value = _state.value.copy(
+            dateMillis = millis,
+            showDatePicker = false
+        )
+    }
 
     fun onSave(onDone: () -> Unit) {
-        val current = _state.value
-        val amountDouble = current.amount.toDoubleOrNull()
-        val errors = mutableListOf<String>()
-        if (current.title.isBlank()) errors.add("Title cannot be empty")
-        if (amountDouble == null || amountDouble <= 0.0) errors.add("Amount must be > 0")
-        if (current.category.isBlank()) errors.add("Category is required")
+        val currentState = _state.value
+        val validationErrors = validateInput(currentState)
 
-        if (errors.isNotEmpty()) {
-            _state.update { it.copy(error = errors.joinToString("\n")) }
+        if (validationErrors.isNotEmpty()) {
+            _state.value = currentState.copy(error = validationErrors.joinToString("\n"))
             return
         }
 
+        // Clear any previous errors
+        _state.value = currentState.copy(error = null)
+
         viewModelScope.launch {
-            val expense = Expense(
-                id = current.id ?: 0L,
-                title = current.title.trim(),
-                amount = amountDouble!!,
-                category = current.category,
-                dateMillis = current.dateMillis
-            )
-            if (current.id == null) repository.addExpense(expense) else repository.updateExpense(expense)
+            val expense = createExpenseFromState(currentState)
+            
+            if (currentState.id == null) {
+                repository.addExpense(expense)
+            } else {
+                repository.updateExpense(expense)
+            }
+            
             onDone()
         }
+    }
+
+    private fun validateInput(state: AddEditState): List<String> {
+        val errors = mutableListOf<String>()
+        
+        if (state.title.isBlank()) {
+            errors.add("Title cannot be empty")
+        }
+        
+        val amountDouble = state.amount.toDoubleOrNull()
+        if (amountDouble == null || amountDouble <= 0.0) {
+            errors.add("Amount must be > 0")
+        }
+        
+        if (state.category.isBlank()) {
+            errors.add("Category is required")
+        }
+        
+        return errors
+    }
+
+    private fun createExpenseFromState(state: AddEditState): Expense {
+        return Expense(
+            id = state.id ?: 0L,
+            title = state.title.trim(),
+            amount = state.amount.toDouble(),
+            category = state.category,
+            dateMillis = state.dateMillis
+        )
     }
 
     private fun todayMillis(): Long =
