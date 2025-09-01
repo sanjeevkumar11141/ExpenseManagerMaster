@@ -69,6 +69,51 @@ It is designed to be **maintainable, testable, and performant**.
 
 ---
 
+## Project Structure
+
+```
+com/example/expensemanager/
+├── ExpenseApp.kt
+├── MainActivity.kt
+├── data/
+│   ├── local/
+│   │   ├── AppDatabase.kt
+│   │   ├── ExpenseDao.kt
+│   │   └── ExpenseEntity.kt
+│   ├── mapper/
+│   │   └── ExpenseMapper.kt
+│   └── repository/
+│       └── ExpenseRepositoryImpl.kt
+├── di/
+│   └── AppModule.kt
+├── domain/
+│   ├── model/
+│   │   └── Expense.kt
+│   └── repository/
+│       └── ExpenseRepository.kt
+├── ui/
+│   ├── navigation/
+│   │   ├── AppNavHost.kt
+│   │   └── NavRoutes.kt
+│   ├── screens/
+│   │   ├── detail/
+│   │   │   ├── ExpenseDetailScreen.kt
+│   │   │   └── ExpenseDetailViewModel.kt
+│   │   ├── edit/
+│   │   │   ├── AddEditExpenseScreen.kt
+│   │   │   └── AddEditExpenseViewModel.kt
+│   │   └── list/
+│   │       ├── ExpenseListScreen.kt
+│   │       └── ExpenseListViewModel.kt
+│   └── theme/
+│       ├── Color.kt
+│       ├── Theme.kt
+│       └── Type.kt
+└── util/
+    └── Category.kt
+```
+---
+
 ## Getting Started
 
 1. Clone the repository
