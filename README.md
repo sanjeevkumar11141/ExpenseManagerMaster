@@ -5,11 +5,49 @@ This app helps users manage daily expenses, categorize them, and keep track of t
 
 ---
 
-## Features
+## Project Structure
 
-This project follows the latest **Android development best practices** with a clean and scalable architecture.  
-It is designed to be **maintainable, testable, and performant**.
-
+```
+com/example/expensemanager/
+├── ExpenseApp.kt
+├── MainActivity.kt
+├── data/
+│   ├── local/
+│   │   ├── AppDatabase.kt
+│   │   ├── ExpenseDao.kt
+│   │   └── ExpenseEntity.kt
+│   ├── mapper/
+│   │   └── ExpenseMapper.kt
+│   └── repository/
+│       └── ExpenseRepositoryImpl.kt
+├── di/
+│   └── AppModule.kt
+├── domain/
+│   ├── model/
+│   │   └── Expense.kt
+│   └── repository/
+│       └── ExpenseRepository.kt
+├── ui/
+│   ├── navigation/
+│   │   ├── AppNavHost.kt
+│   │   └── NavRoutes.kt
+│   ├── screens/
+│   │   ├── detail/
+│   │   │   ├── ExpenseDetailScreen.kt
+│   │   │   └── ExpenseDetailViewModel.kt
+│   │   ├── edit/
+│   │   │   ├── AddEditExpenseScreen.kt
+│   │   │   └── AddEditExpenseViewModel.kt
+│   │   └── list/
+│   │       ├── ExpenseListScreen.kt
+│   │       └── ExpenseListViewModel.kt
+│   └── theme/
+│       ├── Color.kt
+│       ├── Theme.kt
+│       └── Type.kt
+└── util/
+    └── Category.kt
+```
 ---
 
 ## Architecture & Design Patterns
@@ -67,51 +105,6 @@ It is designed to be **maintainable, testable, and performant**.
 - **Dependency Injection:** Hilt
 - **Navigation:** Navigation Component (Compose)
 
----
-
-## Project Structure
-
-```
-com/example/expensemanager/
-├── ExpenseApp.kt
-├── MainActivity.kt
-├── data/
-│   ├── local/
-│   │   ├── AppDatabase.kt
-│   │   ├── ExpenseDao.kt
-│   │   └── ExpenseEntity.kt
-│   ├── mapper/
-│   │   └── ExpenseMapper.kt
-│   └── repository/
-│       └── ExpenseRepositoryImpl.kt
-├── di/
-│   └── AppModule.kt
-├── domain/
-│   ├── model/
-│   │   └── Expense.kt
-│   └── repository/
-│       └── ExpenseRepository.kt
-├── ui/
-│   ├── navigation/
-│   │   ├── AppNavHost.kt
-│   │   └── NavRoutes.kt
-│   ├── screens/
-│   │   ├── detail/
-│   │   │   ├── ExpenseDetailScreen.kt
-│   │   │   └── ExpenseDetailViewModel.kt
-│   │   ├── edit/
-│   │   │   ├── AddEditExpenseScreen.kt
-│   │   │   └── AddEditExpenseViewModel.kt
-│   │   └── list/
-│   │       ├── ExpenseListScreen.kt
-│   │       └── ExpenseListViewModel.kt
-│   └── theme/
-│       ├── Color.kt
-│       ├── Theme.kt
-│       └── Type.kt
-└── util/
-    └── Category.kt
-```
 ---
 
 ## Getting Started
